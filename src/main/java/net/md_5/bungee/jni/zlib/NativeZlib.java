@@ -2,8 +2,12 @@ package net.md_5.bungee.jni.zlib;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.Unpooled;
+import io.netty.buffer.UnpooledByteBufAllocator;
 import lombok.Getter;
 
+import java.nio.ByteBuffer;
 import java.util.zip.DataFormatException;
 
 public class NativeZlib implements BungeeZlib
@@ -58,5 +62,14 @@ public class NativeZlib implements BungeeZlib
         nativeCompress.reset( ctx, compress );
         nativeCompress.consumed = 0;
         nativeCompress.finished = false;
+    }
+
+    @Override
+    public void process(ByteBuffer in, ByteBuffer out) throws DataFormatException
+    {
+        ByteBuf inBuf = Unpooled.wrappedBuffer(in);
+        ByteBuf outBuf = Unpooled.wrappedBuffer(out);
+        inBuf.writeBytes(in);
+        process(inBuf, outBuf);
     }
 }

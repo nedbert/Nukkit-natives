@@ -2,6 +2,7 @@ package net.md_5.bungee.jni.zlib;
 
 import io.netty.buffer.ByteBuf;
 
+import java.nio.ByteBuffer;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
@@ -69,6 +70,36 @@ public class JavaZlib implements BungeeZlib
             {
                 int count = inflater.inflate( buffer );
                 out.writeBytes( buffer, 0, count );
+            }
+
+            inflater.reset();
+        }
+    }
+
+    @Override
+    public void process(ByteBuffer in, ByteBuffer out) throws DataFormatException
+    {
+        byte[] inData = new byte[ in.position() ];
+        in.get( inData );
+
+        if ( compress ) {
+            deflater.setInput(inData);
+            deflater.finish();
+
+            while (!deflater.finished()) {
+                int count = deflater.deflate(buffer);
+                out.put(buffer, 0, count);
+            }
+
+            deflater.reset();
+        } else
+        {
+            inflater.setInput( inData );
+
+            while ( !inflater.finished() && inflater.getTotalIn() < inData.length )
+            {
+                int count = inflater.inflate( buffer );
+                out.put( buffer, 0, count);
             }
 
             inflater.reset();
